@@ -38,9 +38,9 @@ struct Wisard
            tr::Function,
            cf::Function) = new(a,s,z,p,d,tr,cf)
 
-    function Wisard(a::Int, s::Int, z::Bool=false, p::Bool=false)
+    function Wisard(a::Int, s::Int, z::Bool=false, p::Bool=false, par::Bool=false)
         tr::Function = train!
-        cl::Function = classify
+        cl::Function = par ? classify_parallel : classify
         return new(a,s,z,p,Dict{String,Discriminator}(),tr,cl)
     end
 end
@@ -101,6 +101,40 @@ function classify(w::Wisard, x::Array{Retina,1})
             # only one class, so push into the guess vector
             push!(y,winners[1])
         end
+    end
+
+    return y # nothing more to do, return the guess vector
+end
+
+# Wisard parallel classification method
+function classify_parallel(w::Wisard, x::Array{Retina,1})
+    # create an array to hold the WiSARD's guesses
+    nx = size(x)[1]
+    y = Array{String,1}(undef, nx)
+
+    # get the key set known by this Wisard
+    ckeys = keys(w.net)
+    k = collect(ckeys)
+
+    # create a dictionary to hold the answer of each discriminator
+    # loop over all retinas
+    Threads.@threads for i in 1:nx
+        classes = Dict(zip(ckeys,zeros(Int,length(ckeys))))
+        # for the i retina, loop over each discriminator and stor its answer
+        d = Array{Discriminator,1}(undef, nthreads())
+        @inbounds for c in 1:length(classes)
+            d[threadid()] = w.net[k[c]]
+            classes[k[c]] = d[threadid()].Σ(d[threadid()],x[i])
+        end
+        # and the Oscar goes to?
+        winners = findall(x->x==maximum(values(classes)), classes)
+        # at this point, the winners may have more than one class
+
+        # in case of ties, randomize one answer and push into the guess vector
+        # else... only one class, so push into the guess vector
+        y[i] = (length(winners) > 1) ? 
+                winners[Random.randperm(Int(length(winners)))[1]] : 
+                winners[1]
     end
 
     return y # nothing more to do, return the guess vector

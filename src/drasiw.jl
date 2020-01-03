@@ -17,7 +17,9 @@
 
     2019,2020 (@) Diego Carvalho - d.carvalho@ieee.org
 =#
-const drasiw_VERSION = "1.0"
+const drasiw_VERSION = "1.1"
+
+using Base.Threads
 
 # Drasiw Class
 struct Drasiw
@@ -36,9 +38,9 @@ struct Drasiw
            cf::Function) = new(a,s,z,p,d,tr,cf)
 
     function Drasiw(a::Int, s::Int,
-                    z::Bool=false, p::Bool=false)
+                    z::Bool=false, p::Bool=false, par::Bool=false)
         tr::Function = train!
-        cl::Function = classify
+        cl::Function = par ? classify_parallel : classify
         return new(a,s,z,p,Dict{String,Discriminator}(),tr,cl)
     end
 end
@@ -47,7 +49,9 @@ function train!(w::Drasiw, x::Array{Retina,1}, y::Array{String,1})
     lx = length(x)
     ly = length(y)
 
+    # check if they have the same size
     if lx != ly
+        println("The Drasiw cannot be trained: length of Retinas != length of Cases ")
         return
     end
 
@@ -66,26 +70,102 @@ function train!(w::Drasiw, x::Array{Retina,1}, y::Array{String,1})
         d.Γ!(d,x[i])
     end
 end
-
+# Drasiw classification method
 function classify(w::Drasiw, x::Array{Retina,1})
-    m = size(collect(values(w.net))[1].ram)[1] # TODO can crash if net is not initialized
-    y = Array{String,1}()
-    ckeys = keys(w.net)
-    classes = Dict(zip(ckeys,zeros(Int,length(ckeys))))
-    @inbounds for i in x
+    n_of_retinas = size(x)[1]
+    n_of_ram_nodes = size(collect(values(w.net))[1].ram)[1] 
+
+    y = Array{String,1}(undef, n_of_retinas)
+
+    ckeys = collect(keys(w.net))
+    n_of_classes = length(ckeys)
+
+    classes = zeros(Int,n_of_classes)
+
+    # loop over all retinas
+    for i = 1:n_of_retinas
+        # init the b-bleaching
         b = 0
         while true
+            # raise the bleaching bar 
             b += 1
-            for (k,v) in classes
-                d = w.net[k]
-                classes[k] = d.Σ(d,i,b)
+
+            # calculate each class discriminator value
+            for k in 1:n_of_classes
+                d = w.net[ckeys[k]]
+                classes[k] = d.Σ(d,x[i],b)
             end
-            winners = findall(x->x==maximum(values(classes)), classes)
-            if (length(winners) == 1) || (b >= m)
-                push!(y,winners[1])
+
+            # find winners
+            winners = findall(f->f==maximum(values(classes)), classes)
+
+            if length(winners) == 1
+                # if only one winners, it's done. Let's get the next one
+                y[i] = ckeys[winners[1]]
+                break
+            elseif b >= n_of_ram_nodes
+                # so check if it needs a hard stop. If it's a tie, then random select
+                y[i] = ckeys[winners[Random.randperm(Int(length(winners)))[1]]]
                 break
             end
         end
     end
+
+    # return the classification result
+    return y
+end
+
+# Drasiw parallel classification method
+function classify_parallel(w::Drasiw, x::Array{Retina,1})
+    nth = nthreads()
+    # determine who many retinas it has to classify
+    n_of_retinas = size(x)[1]
+
+    # to stop the bleaching algorithm, compare with the number of ram nodes
+    # which indicates the maximum value returned by Σ     
+    n_of_ram_nodes = size(collect(values(w.net))[1].ram)[1] 
+
+    # create an array to hold the Drasiw's guesses
+    y = Array{String,1}(undef, n_of_retinas)
+
+    # get all known classes and the set size
+    ckeys = collect(keys(w.net))
+    n_of_classes = length(ckeys)
+
+    # The code needs one class vector and a discriminator for each thread
+    classes = [ zeros(Int,n_of_classes) for i = 1:nth ]
+    disc = Array{Discriminator,1}(undef, nth)
+
+    # parallel loop on the retina vector
+    Threads.@threads for i = 1:n_of_retinas
+        # init the b-bleaching
+        b = 0
+        thid = threadid()
+        @inbounds while true
+            # raise the bleaching bar
+            b += 1
+            
+            # calculate each class discriminator value
+            for k in 1:n_of_classes
+                disc[thid] = w.net[ckeys[k]]
+                classes[thid][k] = disc[thid].Σ(disc[thid],x[i],b)
+            end
+
+            # find winners
+            winners = findall(f->f==maximum(values(classes[thid])), classes[thid])
+
+            if length(winners) == 1
+                # if only one winners, it's done. Let's get the next one
+                y[i] = ckeys[winners[1]]
+                break
+            elseif b >= n_of_ram_nodes
+                # so check if it needs a hard stop. If it's a tie, then random select
+                y[i] = ckeys[winners[Random.randperm(Int(length(winners)))[1]]]
+                break
+            end
+        end
+    end
+
+    # return the classification result
     return y
 end

@@ -10,6 +10,7 @@ module WeightlessNeuralNetwork
 # Only export WNN data types and train and classify methods
 export Retina, Wisard, Drasiw,
        train!, classify,
+       classify_parallel,
        wnn_VERSION,
        train_standard_discriminator!, train_drasiw_discriminator!,
        sigma_standard_discriminator, sigma_drasiw_discriminator

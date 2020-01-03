@@ -9,11 +9,17 @@ Implements the WiSARD Neural Network (Wilkes, Stonham and Aleksander Recognition
 [^1]: I. Aleksander, W. Thomas, P. Bowden, WISARD a radical step forward in image recognition, Sens. Rev. 4 (1984) 120–124.
 [^2]: M. De Gregorio and M. Giordano, “Cloning DRASiW systems via memory transfer,” Neurocomputing, vol. 192, pp. 115–127, 2016.
 
-## TODO
+## DONE
 
 ### New feature: parallel discriminators
 
-Implement parallel discriminators
+Implement parallel discriminators.
+
+## TODO
+
+### Refactor wisard to access data by indices
+
+The parallel version of Drasiw is super fast due to the indices acessess of data. So, the Wisard class should be rewriten to incorporate the advantages. 
 
 ### New feature: a test module
 
