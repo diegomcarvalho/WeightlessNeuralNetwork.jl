@@ -75,15 +75,15 @@ function classify(w::Drasiw, x::Array{Retina,1})
     n_of_retinas = size(x)[1]
     n_of_ram_nodes = size(collect(values(w.net))[1].ram)[1] 
 
-    y = Array{String,1}(undef, n_of_retinas)
+    y = Array{Classification,1}(undef, n_of_retinas)
 
     ckeys = collect(keys(w.net))
     n_of_classes = length(ckeys)
 
-    classes = zeros(Int,n_of_classes)
+    classes = Dict(zip(ckeys,zeros(Int,length(ckeys))))
 
     # loop over all retinas
-    for i = 1:n_of_retinas
+    @inbounds for i = 1:n_of_retinas
         # init the b-bleaching
         b = 0
         while true
@@ -93,19 +93,22 @@ function classify(w::Drasiw, x::Array{Retina,1})
             # calculate each class discriminator value
             for k in 1:n_of_classes
                 d = w.net[ckeys[k]]
-                classes[k] = d.Σ(d,x[i],b)
+                classes[ckeys[k]] = d.Σ(d,x[i],b)
             end
 
             # find winners
-            winners = findall(f->f==maximum(values(classes)), classes)
+            # and the Oscar goes to?
+            winners = get_winners(classes)
 
-            if length(winners) == 1
+            if length(winners) <= 2
                 # if only one winners, it's done. Let's get the next one
-                y[i] = ckeys[winners[1]]
+                winner = winners[1]
+                y[i] = Classification(winner[1], winner[2], (winner[2]/n_of_ram_nodes), (winner[2] - winners[end][2])/winner[2])
                 break
             elseif b >= n_of_ram_nodes
                 # so check if it needs a hard stop. If it's a tie, then random select
-                y[i] = ckeys[winners[Random.randperm(Int(length(winners)))[1]]]
+                winner = winners[Random.randperm(Int(length(winners)-1))[1]]
+                y[i] = Classification(winner[1], winner[2], (winner[2]/n_of_ram_nodes), (winner[2] - winners[end][2])/winner[2])
                 break
             end
         end
@@ -126,14 +129,14 @@ function classify_parallel(w::Drasiw, x::Array{Retina,1})
     n_of_ram_nodes = size(collect(values(w.net))[1].ram)[1] 
 
     # create an array to hold the Drasiw's guesses
-    y = Array{String,1}(undef, n_of_retinas)
+    y = Array{Classification,1}(undef, n_of_retinas)
 
     # get all known classes and the set size
     ckeys = collect(keys(w.net))
     n_of_classes = length(ckeys)
 
     # The code needs one class vector and a discriminator for each thread
-    classes = [ zeros(Int,n_of_classes) for i = 1:nth ]
+    classes = [ Dict(zip(ckeys,zeros(Int,length(ckeys)))) for i = 1:nth ]
     disc = Array{Discriminator,1}(undef, nth)
 
     # parallel loop on the retina vector
@@ -148,19 +151,21 @@ function classify_parallel(w::Drasiw, x::Array{Retina,1})
             # calculate each class discriminator value
             for k in 1:n_of_classes
                 disc[thid] = w.net[ckeys[k]]
-                classes[thid][k] = disc[thid].Σ(disc[thid],x[i],b)
+                classes[thid][ckeys[k]] = disc[thid].Σ(disc[thid],x[i],b)
             end
 
-            # find winners
-            winners = findall(f->f==maximum(values(classes[thid])), classes[thid])
+            # and the Oscar goes to?
+            winners = get_winners(classes[thid])
 
-            if length(winners) == 1
+            if length(winners) <= 2
                 # if only one winners, it's done. Let's get the next one
-                y[i] = ckeys[winners[1]]
+                winner = winners[1]
+                y[i] = Classification(winner[1], winner[2], (winner[2]/n_of_ram_nodes), (winner[2] - winners[end][2])/winner[2])
                 break
             elseif b >= n_of_ram_nodes
                 # so check if it needs a hard stop. If it's a tie, then random select
-                y[i] = ckeys[winners[Random.randperm(Int(length(winners)))[1]]]
+                winner = winners[Random.randperm(Int(length(winners)-1))[1]]
+                y[i] = Classification(winner[1], winner[2], (winner[2]/n_of_ram_nodes), (winner[2] - winners[end][2])/winner[2])
                 break
             end
         end

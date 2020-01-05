@@ -77,7 +77,10 @@ end
 # Wisard classification method
 function classify(w::Wisard, x::Array{Retina,1})
     # create an array to hold the WiSARD's guesses
-    y = Array{String,1}()
+    y = Array{Classification,1}()
+
+    # get the number of RAM nodes on each discriminator
+    n_of_ram_nodes = size(collect(values(w.net))[1].ram)[1]
 
     # get the set of keys known by this Wisard
     ckeys = keys(w.net)
@@ -92,15 +95,17 @@ function classify(w::Wisard, x::Array{Retina,1})
             classes[k] = d.Σ(d,i)
         end
         # and the Oscar goes to?
-        winners = findall(x->x==maximum(values(classes)), classes)
-        # at this point, the winners may have more than one class
-        if (length(winners) > 1)
+        winners = get_winners(classes) 
+        # get_winners returns at least more then one (the winner and the 2nd)
+        # so, if more then 2, the winners may have more than one class (ties)
+        if (length(winners) > 2)
             # in case of ties, randomize one answer and push into the guess vector
-            push!(y,winners[Random.randperm(Int(length(winners)))[1]])
+            winner = winners[Random.randperm(Int(length(winners)-1))[1]]
         else
             # only one class, so push into the guess vector
-            push!(y,winners[1])
+            winner = winners[1]
         end
+        push!(y,Classification(winner[1], winner[2], (winner[2]/n_of_ram_nodes), (winner[2] - winners[end][2])/winner[2]))
     end
 
     return y # nothing more to do, return the guess vector
@@ -110,7 +115,10 @@ end
 function classify_parallel(w::Wisard, x::Array{Retina,1})
     # create an array to hold the WiSARD's guesses
     nx = size(x)[1]
-    y = Array{String,1}(undef, nx)
+    y = Array{Classification,1}(undef, nx)
+
+    # get the number of RAM nodes on each discriminator
+    n_of_ram_nodes = size(collect(values(w.net))[1].ram)[1]
 
     # get the key set known by this Wisard
     ckeys = keys(w.net)
@@ -127,14 +135,17 @@ function classify_parallel(w::Wisard, x::Array{Retina,1})
             classes[k[c]] = d[threadid()].Σ(d[threadid()],x[i])
         end
         # and the Oscar goes to?
-        winners = findall(x->x==maximum(values(classes)), classes)
-        # at this point, the winners may have more than one class
-
-        # in case of ties, randomize one answer and push into the guess vector
-        # else... only one class, so push into the guess vector
-        y[i] = (length(winners) > 1) ? 
-                winners[Random.randperm(Int(length(winners)))[1]] : 
-                winners[1]
+        winners = get_winners(classes) 
+        # get_winners returns at least more then one (the winner and the 2nd)
+        # so, if more then 2, the winners may have more than one class (ties)
+        if (length(winners) > 2)
+            # in case of ties, randomize one answer and push into the guess vector
+            winner = winners[Random.randperm(Int(length(winners)-1))[1]]
+        else
+            # only one class, so push into the guess vector
+            winner = winners[1]
+        end
+        y[i] = Classification(winner[1], winner[2], (winner[2]/n_of_ram_nodes), (winner[2] - winners[end][2])/winner[2])
     end
 
     return y # nothing more to do, return the guess vector

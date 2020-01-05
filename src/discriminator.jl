@@ -52,7 +52,7 @@ struct Discriminator
         return new( Int(address), Int(size),
                     zero_skip, padded_retina,
                     this_map, this_ram,
-                    gamma, sigma)
+                    gamma, sigma )
     end
 end
 

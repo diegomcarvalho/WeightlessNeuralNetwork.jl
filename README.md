@@ -17,8 +17,10 @@ Implements the WiSARD Neural Network (Wilkes, Stonham and Aleksander Recognition
 - [ ] New feature: a test module --- Implement the test module. It should scan addresses, size, classes, etc.
 - [ ] New feature: random generation control --- Provide a way to control the random generation. Each wisard net should have a random generation stream and this information must propagate through layers since Discriminator must use on the retina mapping.
 - [ ] New feature: record wisard state --- Should implement IO functions in order to record the current wisard training state. Perhaps, it should use JSON.
-- [ ] New feature: confidence level --- Should calculate the confidence level for each wisard output.
-- [X] Bug fix (1) --- The code below can crash when b reaches m during bleaching, and winners is greater than one (line 83).
+- [x] New feature: confidence level --- Should calculate the confidence level for each wisard output.
+- [x] Bug fix (1) --- The code below can crash when b reaches m during bleaching, and winners is greater than one (line 83).
+- [ ] Implement ClusWisard
+- [ ] Implement MageNet
 
 ```julia
 # drasiw.jl - line 83
