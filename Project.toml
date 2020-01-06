@@ -1,9 +1,8 @@
 name = "WeightlessNeuralNetwork"
 uuid = "d596992c-e674-49a1-b051-cc7fd5f73dfa"
 authors = ["Diego Carvalho <d.carvalho@ieee.org>"]
-version = "0.2.0"
+version = "0.2.1"
 
 [deps]
 Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
-src = "14ec9285-ff7d-5059-98f8-97676e6c56e6"

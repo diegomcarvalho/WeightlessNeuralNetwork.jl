@@ -2,18 +2,6 @@
     Module: Weightless Neural Network
     Data Type: Wisard
 
-    Implements the WiSARD Neural Network (Wilkes, Stonham and Aleksander
-    Recognition Device). It is composed of a set of discriminators, often
-    called as classifiers[1].
-
-    This specific implementation is based on the description provided by [2],
-    and the zero_skip and padded_retina were based on the IAZero implementation.
-
-    [1] I. Aleksander, W. Thomas, P. Bowden, WISARD a radical step forward in
-        image recognition, Sens. Rev. 4 (1984) 120–124.
-    [2] M. De Gregorio and M. Giordano, “Cloning DRASiW systems via memory
-        transfer,” Neurocomputing, vol. 192, pp. 115–127, 2016.
-
     2019,2020 (@) Diego Carvalho - d.carvalho@ieee.org
 =#
 
@@ -22,6 +10,26 @@ const wisard_VERSION = "1.1"
 using Base.Threads
 
 # Wisard Class
+"""
+    w = Wisard(address,size,zero_skip,padded_retina,train!,classify,parallel)
+
+    address     - ::Int Number of bits per RAM node
+    size        - ::Int Number of pixels on the retina
+    zero_skip   - ::Boolean pad the retina's remainder pixels (not coverd)
+    parallel    - ::Boolean enables parallel classification
+    
+Implements the WiSARD Neural Network (Wilkes, Stonham and Aleksander
+Recognition Device). It is composed of a set of discriminators, often
+called as classifiers[^1].
+
+This specific implementation is based on the description provided by [^2],
+and the *zero skip* and *padded retina* were based on the IAZero implementation.
+
+[^1]: I. Aleksander, W. Thomas, P. Bowden, WISARD a radical step forward in
+    image recognition, Sens. Rev. 4 (1984) 120–124.
+[^2]: M. De Gregorio and M. Giordano, “Cloning DRASiW systems via memory
+    transfer,” Neurocomputing, vol. 192, pp. 115–127, 2016.
+"""
 struct Wisard
     address::Int           # Number of bits per RAM node
     size::Int              # Number of pixels on the retina

@@ -26,10 +26,10 @@ struct Classification
 end
 
 function Base.show(io::IO, c::Classification)
-     @printf(io, "WNN Classification(class=\"%s\", RAM Nodes Activated=%d, Activation=%f, Confidence=%f)",
+     @printf(io, "WNN Classification(class=\"%s\", RAM Nodes Activated=%d, Activation=%f, Confidence=%f)\n",
              c.class,
              c.activated,
-             c.acctivation,
+             c.activation,
              c.confidence
             )
 end

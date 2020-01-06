@@ -85,15 +85,15 @@ function classify(w::Drasiw, x::Array{Retina,1})
     # loop over all retinas
     @inbounds for i = 1:n_of_retinas
         # init the b-bleaching
-        b = 0
+        β = 0
         while true
             # raise the bleaching bar 
-            b += 1
+            β += 1
 
             # calculate each class discriminator value
             for k in 1:n_of_classes
                 d = w.net[ckeys[k]]
-                classes[ckeys[k]] = d.Σ(d,x[i],b)
+                classes[ckeys[k]] = d.Σ(d,x[i],β)
             end
 
             # find winners
@@ -105,7 +105,7 @@ function classify(w::Drasiw, x::Array{Retina,1})
                 winner = winners[1]
                 y[i] = Classification(winner[1], winner[2], (winner[2]/n_of_ram_nodes), (winner[2] - winners[end][2])/winner[2])
                 break
-            elseif b >= n_of_ram_nodes
+            elseif β >= n_of_ram_nodes
                 # so check if it needs a hard stop. If it's a tie, then random select
                 winner = winners[Random.randperm(Int(length(winners)-1))[1]]
                 y[i] = Classification(winner[1], winner[2], (winner[2]/n_of_ram_nodes), (winner[2] - winners[end][2])/winner[2])
@@ -142,16 +142,16 @@ function classify_parallel(w::Drasiw, x::Array{Retina,1})
     # parallel loop on the retina vector
     Threads.@threads for i = 1:n_of_retinas
         # init the b-bleaching
-        b = 0
+        β = 0
         thid = threadid()
         @inbounds while true
             # raise the bleaching bar
-            b += 1
+            β += 1
             
             # calculate each class discriminator value
             for k in 1:n_of_classes
                 disc[thid] = w.net[ckeys[k]]
-                classes[thid][ckeys[k]] = disc[thid].Σ(disc[thid],x[i],b)
+                classes[thid][ckeys[k]] = disc[thid].Σ(disc[thid],x[i],β)
             end
 
             # and the Oscar goes to?
@@ -162,7 +162,7 @@ function classify_parallel(w::Drasiw, x::Array{Retina,1})
                 winner = winners[1]
                 y[i] = Classification(winner[1], winner[2], (winner[2]/n_of_ram_nodes), (winner[2] - winners[end][2])/winner[2])
                 break
-            elseif b >= n_of_ram_nodes
+            elseif β >= n_of_ram_nodes
                 # so check if it needs a hard stop. If it's a tie, then random select
                 winner = winners[Random.randperm(Int(length(winners)-1))[1]]
                 y[i] = Classification(winner[1], winner[2], (winner[2]/n_of_ram_nodes), (winner[2] - winners[end][2])/winner[2])
