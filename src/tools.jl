@@ -25,6 +25,10 @@ struct Classification
     confidence::Float64     # the relative confidence of the highest response with the respect of the second one.
 end
 
+get_activated(v::Array{Classification,1}) = getproperty.(v,:activated)
+get_activation(v::Array{Classification,1}) = getproperty.(v,:activation)
+get_confidence(v::Array{Classification,1}) = getproperty.(v,:confidence)
+
 function Base.show(io::IO, c::Classification)
      @printf(io, "WNN Classification(class=\"%s\", RAM Nodes Activated=%d, Activation=%f, Confidence=%f)\n",
              c.class,
@@ -35,7 +39,7 @@ function Base.show(io::IO, c::Classification)
 end
 
 function build_mapping(address_size::Int, n::Int, rng=wnn_RNG)
-    mapping = reshape(Random.randperm(Int(n)),(n ÷ address_size,address_size))
+    mapping = reshape(Random.randperm(rng,Int(n)),(n ÷ address_size,address_size))
     return mapping
 end
 
