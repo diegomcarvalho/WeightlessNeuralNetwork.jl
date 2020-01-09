@@ -21,10 +21,6 @@
     2019,2020 (@) Diego Carvalho - d.carvalho@ieee.org
 =#
 
-# TODO - Implement the show() and performance improvements.
-
-const discriminator_VERSION = "0.9"
-
 # Discriminator represents one Σ in an Weightless Neural Network
 struct Discriminator
     address::Int           # Number of bits per RAM node

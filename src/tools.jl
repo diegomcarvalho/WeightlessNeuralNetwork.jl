@@ -7,8 +7,6 @@
     2019,2020 (@) Diego Carvalho - d.carvalho@ieee.org
 =#
 
-const tools_VERSION = "1.0";
-
 import Base.show
 import Base.getindex
 import Base.length

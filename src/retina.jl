@@ -8,8 +8,6 @@
     2019,2020 (@) Diego Carvalho - d.carvalho@ieee.org
 =#
 
-const retina_VERSION = "1.0"
-
 # Retina represents a memory retina
 struct Retina
     mem::Array{Int8,1}

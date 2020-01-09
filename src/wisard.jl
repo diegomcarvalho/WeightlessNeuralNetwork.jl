@@ -5,8 +5,6 @@
     2019,2020 (@) Diego Carvalho - d.carvalho@ieee.org
 =#
 
-const wisard_VERSION = "1.1"
-
 using Base.Threads
 
 # Wisard Class

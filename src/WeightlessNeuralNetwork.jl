@@ -11,9 +11,9 @@ module WeightlessNeuralNetwork
 export Retina, Wisard, Drasiw,
        train!, classify,
        classify_parallel,
-       wnn_VERSION,
        train_standard_discriminator!, train_drasiw_discriminator!,
-       sigma_standard_discriminator, sigma_drasiw_discriminator
+       sigma_standard_discriminator, sigma_drasiw_discriminator,
+       get_activated, get_activation, get_confidence
 
 include("retina.jl")
 include("tools.jl")
@@ -21,10 +21,4 @@ include("discriminator.jl")
 include("wisard.jl")
 include("drasiw.jl")
 
-const wnn_VERSION = ["1.0",
-                     retina_VERSION,
-                     tools_VERSION,
-                     discriminator_VERSION,
-                     wisard_VERSION,
-                     drasiw_VERSION]
 end  # module WeightlessNeuralNetwork
