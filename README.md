@@ -2,7 +2,7 @@
 
 ## Introduction
 
-Implements the WiSARD Neural Network (Wilkes, Stonham and Aleksander Recognition Device). It is composed of a set of discriminators, often called as classifiers[1]. This specific implementation is based on the description provided by [2], and the zero_skip and padded_retina were based on the IAZero implementation.
+Implements the WiSARD Neural Network (Wilkes, Stonham and Aleksander Recognition Device). It is composed of a set of discriminators, often called as classifiers[1]. This specific implementation is based on the description provided by [2], and the zero_skip and padded_retina were inspired on the IAZero implementation.
 
 2019,2020 (@) Diego Carvalho - d.carvalho@ieee.org
 
@@ -10,6 +10,32 @@ Implements the WiSARD Neural Network (Wilkes, Stonham and Aleksander Recognition
 
 > [2]: M. De Gregorio and M. Giordano, “Cloning DRASiW systems via memory transfer,” Neurocomputing, vol. 192, pp. 115–127, 2016.
 
+
+## Example
+
+```
+using WeightlessNeuralNetwork
+
+X = [
+             Retina([1,1,1,0,0,0,0,0]),
+             Retina([1,1,1,1,0,0,0,0]),
+             Retina([0,0,0,0,1,1,1,1]),
+             Retina([0,0,0,0,0,1,1,1])
+           ]
+           
+y = [
+             "cold",
+             "cold",
+             "hot",
+             "hot"
+           ]
+
+w = Wisard(3,9)
+
+train!(w,X,y)
+
+classify(w,X)
+```
 ## TODO
 
 - [X] New feature: parallel discriminators --- Implement parallel discriminators.
