@@ -13,7 +13,7 @@ Implements the WiSARD Neural Network (Wilkes, Stonham and Aleksander Recognition
 ## TODO
 
 - [X] New feature: parallel discriminators --- Implement parallel discriminators.
-- [ ] Refactor wisard to access data by indices --- The parallel version of Drasiw is super fast due to the indices acessess of data. So, the Wisard class should be rewriten to incorporate the advantages. 
+- [ ] Refactor Wisard to access data by indices --- The parallel version of Drasiw is super fast due to the indices accesses of data. So, the Wisard class should be rewritten to incorporate the advantages. 
 - [ ] New feature: a test module --- Implement the test module. It should scan addresses, size, classes, etc.
 - [ ] New feature: random generation control --- Provide a way to control the random generation. Each wisard net should have a random generation stream and this information must propagate through layers since Discriminator must use on the retina mapping.
 - [ ] New feature: record wisard state --- Should implement IO functions in order to record the current wisard training state. Perhaps, it should use JSON.
